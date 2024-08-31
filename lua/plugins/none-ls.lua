@@ -1,5 +1,4 @@
-
-if true then return {} end -- WARN: REMOVE THIS LINE TO ACTIVATE THIS FILE
+-- if true then return {} end -- WARN: REMOVE THIS LINE TO ACTIVATE THIS FILE
 
 -- Customize None-ls sources
 
@@ -7,19 +6,31 @@ if true then return {} end -- WARN: REMOVE THIS LINE TO ACTIVATE THIS FILE
 return {
   "nvimtools/none-ls.nvim",
   opts = function(_, opts)
-    -- opts variable is the default configuration table for the setup function call
-    -- local null_ls = require "null-ls"
-
-    -- Check supported formatters and linters
-    -- https://github.com/nvimtools/none-ls.nvim/tree/main/lua/null-ls/builtins/formatting
-    -- https://github.com/nvimtools/none-ls.nvim/tree/main/lua/null-ls/builtins/diagnostics
+    -- Import null-ls
+    local null_ls = require "null-ls"
 
     -- Only insert new sources, do not replace the existing ones
     -- (If you wish to replace, use opts.sources = {} instead of the list_insert_unique function)
     opts.sources = require("astrocore").list_insert_unique(opts.sources, {
-      -- Set a formatter
-      -- null_ls.builtins.formatting.stylua,
-      -- null_ls.builtins.formatting.prettier,
+      -- Set rustfmt as a formatter for Rust files
+      null_ls.builtins.formatting.rustfmt.with({
+        extra_args = { "--edition=2021" },  -- ここで必要に応じて追加のオプションを設定
+      }),
     })
+
+    -- Add auto-formatting on save for Rust files
+    local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+    opts.on_attach = function(client, bufnr)
+      if client.supports_method("textDocument/formatting") then
+        vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          group = augroup,
+          buffer = bufnr,
+          callback = function()
+            vim.lsp.buf.format({ bufnr = bufnr })
+          end,
+        })
+      end
+    end
   end,
 }
