@@ -13,9 +13,6 @@ return {
     -- (If you wish to replace, use opts.sources = {} instead of the list_insert_unique function)
     opts.sources = require("astrocore").list_insert_unique(opts.sources, {
       -- Set rustfmt as a formatter for Rust files
-      null_ls.builtins.formatting.rustfmt.with({
-        extra_args = { "--edition=2021" },  -- ここで必要に応じて追加のオプションを設定
-      }),
     })
 
     -- Add auto-formatting on save for Rust files
